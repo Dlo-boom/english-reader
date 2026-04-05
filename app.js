@@ -321,7 +321,7 @@ document.addEventListener('touchstart', (e) => {
   }
 });
 
-// Speech synthesis - iOS compatible
+// Speech synthesis - iOS compatible, natural voice
 function getVoices() {
   return new Promise((resolve) => {
     let voices = window.speechSynthesis.getVoices();
@@ -336,6 +336,35 @@ function getVoices() {
   });
 }
 
+// Find the most natural English voice
+function findBestVoice(voices) {
+  // Priority: Premium voices on iOS (Samantha, Daniel, etc.)
+  // Then Microsoft natural voices
+  // Then any English voice
+  const preferredNames = [
+    'Samantha',       // iOS Premium - natural
+    'Daniel',        // iOS Premium
+    'Ellen',         // iOS Premium
+    'Moira',         // iOS
+    'Karen',         // iOS
+    'Tessa',         // iOS
+    'Microsoft Zira', // Windows natural
+    'Microsoft David', // Windows natural
+    'Google US English',
+    'en-US'
+  ];
+
+  for (const name of preferredNames) {
+    const voice = voices.find(v =>
+      v.name.includes(name) || v.name === name
+    );
+    if (voice) return voice;
+  }
+
+  // Fallback to any English voice
+  return voices.find(v => v.lang.startsWith('en'));
+}
+
 async function readAll() {
   if (!currentDoc.content) {
     showToast('No content to read');
@@ -347,20 +376,25 @@ async function readAll() {
     return;
   }
 
-  // iOS requires user interaction first - play a silent audio first
   window.speechSynthesis.cancel();
 
-  // Initialize voices on first interaction (iOS requirement)
+  // Initialize voices
   const voices = await getVoices();
+  const bestVoice = findBestVoice(voices);
 
   const utterance = new SpeechSynthesisUtterance(currentDoc.content);
-  // Try to find English voice
-  const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('English')) || voices.find(v => v.lang.startsWith('en'));
-  if (enVoice) utterance.voice = enVoice;
-  utterance.lang = 'en-US';
-  utterance.rate = 0.85;
-  utterance.pitch = 1;
-  utterance.volume = 1;
+
+  if (bestVoice) {
+    utterance.voice = bestVoice;
+    utterance.lang = bestVoice.lang;
+  } else {
+    utterance.lang = 'en-US';
+  }
+
+  // Natural speech settings
+  utterance.rate = 0.75;      // Slightly slower for clarity
+  utterance.pitch = 1.0;     // Normal pitch
+  utterance.volume = 1.0;
 
   utterance.onend = () => {
     showToast('Reading complete');
@@ -368,7 +402,7 @@ async function readAll() {
 
   utterance.onerror = (e) => {
     console.error('Speech error:', e);
-    showToast('Speech error: ' + e.error);
+    showToast('Error playing audio');
   };
 
   window.speechSynthesis.speak(utterance);
@@ -380,18 +414,23 @@ async function speakSelection() {
 
   window.speechSynthesis.cancel();
 
-  // Initialize voices
   const voices = await getVoices();
+  const bestVoice = findBestVoice(voices);
 
   const utterance = new SpeechSynthesisUtterance(selectedText);
-  const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('English')) || voices.find(v => v.lang.startsWith('en'));
-  if (enVoice) utterance.voice = enVoice;
-  utterance.lang = 'en-US';
-  utterance.rate = 0.85;
+
+  if (bestVoice) {
+    utterance.voice = bestVoice;
+    utterance.lang = bestVoice.lang;
+  } else {
+    utterance.lang = 'en-US';
+  }
+
+  utterance.rate = 0.75;
+  utterance.pitch = 1.0;
 
   utterance.onerror = (e) => {
     console.error('Speech error:', e);
-    showToast('Speech error: ' + e.error);
   };
 
   window.speechSynthesis.speak(utterance);
