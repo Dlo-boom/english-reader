@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#4F7CFF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="English Reader">
+  <title>English Dlearnninger</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family/system-ui,-apple-system,BlinkMacSystemFont,Segoe+UI,Roboto,sans-serif" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="app-title">English Dlearnninger</h1>
+        <p class="app-subtitle">Read • Listen • Translate</p>
+      </div>
+      <button class="btn-secondary" onclick="goToLibrary()">Library</button>
+    </header>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+      <div class="button-group">
+        <button class="btn-primary" onclick="triggerFileUpload()">
+          <span class="btn-icon">📁</span>
+          Upload File
+        </button>
+        <button class="btn-secondary-outline" onclick="showPasteModal()">
+          <span class="btn-icon">📝</span>
+          Paste Text
+        </button>
+      </div>
+      <input type="file" id="fileInput" accept=".txt,.pdf" hidden onchange="handleFileSelect(event)">
+      <p class="hint-text">PDF / TXT</p>
+    </section>
+
+    <!-- Meta Info -->
+    <section class="meta-section" id="metaSection">
+      <div class="meta-row">
+        <span class="meta-label">Title</span>
+        <span class="meta-value" id="docTitle">Pasted Note</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Source</span>
+        <span class="meta-value" id="docSource">— • — • 0 words</span>
+      </div>
+    </section>
+
+    <!-- Reading Area -->
+    <section class="reading-section" id="readingSection" onmouseup="handleTextSelect()" ontouchend="handleTextSelect()">
+      <div class="reading-content" id="readingContent">
+        <p class="placeholder-text">Upload a file or paste text to start reading.</p>
+      </div>
+    </section>
+
+    <!-- Translation Display -->
+    <section class="translation-section" id="translationSection" style="display: none;">
+      <div id="translationContent"></div>
+    </section>
+
+    <!-- Bottom Actions -->
+    <footer class="bottom-bar">
+      <button class="btn-primary btn-large" onclick="readAll()">
+        Read All
+      </button>
+      <button class="btn-secondary-outline btn-large" onclick="toggleTranslation()">
+        Translate All
+      </button>
+    </footer>
+
+    <!-- Floating Toolbar -->
+    <div class="floating-toolbar" id="floatingToolbar" style="display: none;">
+      <button class="toolbar-btn" onclick="speakSelection()">🔊 Speak</button>
+      <button class="toolbar-btn" onclick="translateSelection()">🌐 Translate</button>
+      <button class="toolbar-btn" onclick="saveToFavorites()">⭐ Save</button>
+    </div>
+
+    <!-- Paste Modal -->
+    <div class="modal-overlay" id="pasteModal" style="display: none;">
+      <div class="modal-content">
+        <h2 class="modal-title">Paste Text</h2>
+        <textarea id="pasteInput" class="paste-textarea" placeholder="Paste English text here..."></textarea>
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="hidePasteModal()">Cancel</button>
+          <button class="btn-primary" onclick="savePastedText()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation -->
+    <div class="modal-overlay" id="deleteModal" style="display: none;">
+      <div class="modal-content">
+        <h2 class="modal-title">Delete this record?</h2>
+        <p class="modal-desc">This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="hideDeleteModal()">Cancel</button>
+          <button class="btn-danger" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <!-- Library Page (hidden by default) -->
+  <div id="libraryPage" style="display: none;">
+    <header class="header">
+      <div class="header-left">
+        <h1 class="app-title">Library</h1>
+        <p class="app-subtitle">上載記錄 / History</p>
+      </div>
+      <button class="btn-secondary" onclick="goToHome()">Back</button>
+    </header>
+
+    <section class="upload-section">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search..." oninput="filterLibrary()">
+    </section>
+
+    <section class="library-list" id="libraryList">
+      <!-- Items will be populated by JS -->
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Set PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
